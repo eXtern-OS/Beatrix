@@ -6,6 +6,7 @@ Simple go package, due to security concerns better keep her private
 Usage:
 ```golang
 import "github.com/eXtern-OS/Beatrix"
+
 func main(){
   beatrix.Init(issuer, token, channelID)
   
