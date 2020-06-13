@@ -84,3 +84,18 @@ func SendError(message, localIssuer string) {
 	}
 	return
 }
+
+func Panic(message string) {
+	m := "[" + Issuer + " / PANIC]\n@everyone\n\n" + message
+	if ErrorMode {
+		log.Println(message)
+		Reinit()
+		return
+	}
+	_, err := Discord.ChannelMessageSend(ChannelID, m)
+	if err != nil {
+		log.Println(err)
+		Reinit()
+	}
+	return
+}
