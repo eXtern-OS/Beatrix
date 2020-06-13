@@ -1,7 +1,7 @@
 # Beatrix
 Beatrix is a go binding to a bot, used by eXternOS team to get notifications from services
 
-Simple go package, due to security concerns better keep her private
+Simple go package
 
 Usage:
 ```golang

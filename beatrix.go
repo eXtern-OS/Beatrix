@@ -3,14 +3,21 @@ package beatrix
 import (
 	"github.com/bwmarrin/discordgo"
 	"log"
+	"sync"
 )
+
+type DS struct {
+	Mutex   sync.Mutex
+	Discord *discordgo.Session
+}
 
 var (
 	Token     string
 	Issuer    string
 	ChannelID string
-	Discord   *discordgo.Session
 	ErrorMode bool
+
+	Discord DS
 )
 
 // Function to fire up discord bot, issuer will be in the heading of message, token is bot token and channelId is channelID
@@ -20,31 +27,35 @@ func Init(issuer, token, channelID string) {
 	ChannelID = channelID
 	ErrorMode = false
 	var err error
-	Discord, err = discordgo.New("Bot " + Token)
+	Discord.Mutex.Lock()
+	Discord.Discord, err = discordgo.New("Bot " + Token)
 	if err != nil {
 		// Failed to init Beatrix
 		log.Panic(err)
 	}
-	err = Discord.Open()
+	err = Discord.Discord.Open()
 	if err != nil {
 		// Failed to init Beatrix
 		log.Panic(err)
 	}
+	Discord.Mutex.Unlock()
 }
 
 func Reinit() {
 	var err error
-	Discord, err = discordgo.New("Bot " + Token)
+	Discord.Mutex.Lock()
+	Discord.Discord, err = discordgo.New("Bot " + Token)
 	if err != nil {
 		// Failed to init Beatrix
-		ErrorMode = false
+		ErrorMode = true
 		log.Println(err)
 		return
 	}
-	err = Discord.Open()
+	err = Discord.Discord.Open()
+	Discord.Mutex.Unlock()
 	if err != nil {
 		// Failed to init Beatrix
-		ErrorMode = false
+		ErrorMode = true
 		log.Println(err)
 		return
 	}
@@ -60,7 +71,9 @@ func Message(message string) {
 		Reinit()
 		return
 	}
-	_, err := Discord.ChannelMessageSend(ChannelID, message)
+	Discord.Mutex.Lock()
+	_, err := Discord.Discord.ChannelMessageSend(ChannelID, message)
+	Discord.Mutex.Unlock()
 	if err != nil {
 		// Since we have goroutine, we don't have to return or something
 		// Better re-init discord
@@ -77,7 +90,9 @@ func SendError(message, localIssuer string) {
 		Reinit()
 		return
 	}
-	_, err := Discord.ChannelMessageSend(ChannelID, message)
+	Discord.Mutex.Lock()
+	_, err := Discord.Discord.ChannelMessageSend(ChannelID, message)
+	Discord.Mutex.Unlock()
 	if err != nil {
 		log.Println(err)
 		Reinit()
@@ -92,7 +107,9 @@ func Panic(message string) {
 		Reinit()
 		return
 	}
-	_, err := Discord.ChannelMessageSend(ChannelID, m)
+	Discord.Mutex.Lock()
+	_, err := Discord.Discord.ChannelMessageSend(ChannelID, m)
+	Discord.Mutex.Unlock()
 	if err != nil {
 		log.Println(err)
 		Reinit()
