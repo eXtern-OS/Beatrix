@@ -38,6 +38,10 @@ func Init(issuer, token, channelID string) {
 		// Failed to init Beatrix
 		log.Panic(err)
 	}
+	_, err = Discord.Discord.ChannelMessage(ChannelID, "["+Issuer+" / INIT]")
+	if err != nil {
+		log.Panic(err)
+	}
 	Discord.Mutex.Unlock()
 }
 
